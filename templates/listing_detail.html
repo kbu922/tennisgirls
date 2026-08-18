@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.title }} - TennisGirls Marketplace{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <a href="/marketplace" class="btn btn-outline-secondary btn-sm mb-4 fw-bold">
+        &larr; Back to Marketplace
+    </a>
+
+    <div class="row g-4">
+        <!-- Racquet Image -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm overflow-hidden">
+                <img src="{{ url_for('static', filename='uploads/' + item.image) }}" 
+                     onerror="this.src='https://via.placeholder.com/600x400?text=Tennis+Racquet'" 
+                     class="img-fluid w-100" style="max-height: 450px; object-fit: cover;">
+            </div>
+        </div>
+
+        <!-- Racquet Details & Seller Contact -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h2 class="fw-bold mb-0">{{ item.title }}</h2>
+                    <span class="badge bg-success fs-5">{{ item.price }}</span>
+                </div>
+
+                <p class="text-muted mb-4"><i class="fa-solid fa-location-dot text-danger me-1"></i> {{ item.location }}</p>
+
+                <h5 class="fw-bold border-bottom pb-2 mb-3">Item Specifications</h5>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2"><strong>Condition:</strong> <span class="badge bg-info text-dark">{{ item.condition }}</span></li>
+                    <li class="mb-2"><strong>Grip & Specs:</strong> {{ item.specs if item.specs else 'Standard Specs' }}</li>
+                    <li class="mb-2"><strong>Listing ID:</strong> #{{ item.id }}</li>
+                </ul>
+
+                <!-- Seller Info Card -->
+                <div class="card bg-light border-0 p-3 mb-4">
+                    <h6 class="fw-bold mb-1">Seller Information</h6>
+                    <p class="mb-1 small"><strong>Name:</strong> {{ item.seller_name }}</p>
+                    <p class="mb-1 small"><strong>Email:</strong> {{ item.seller_email }}</p>
+                    <p class="mb-0 small"><strong>Phone / Kakao:</strong> {{ item.seller_phone if item.seller_phone else 'Contact via email' }}</p>
+                </div>
+
+                <a href="mailto:{{ item.seller_email }}?subject=Inquiry regarding {{ item.title }}" class="btn btn-primary btn-lg fw-bold w-100">
+                    <i class="fa-solid fa-envelope me-2"></i> Contact Seller directly
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
