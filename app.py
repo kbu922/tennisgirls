@@ -1,73 +1,151 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-tennis-key'  # Replace with a secure random key
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB limit
 
+# Security & Environment Configurations
+app.secret_key = os.environ.get('SECRET_KEY', 'tennisgirls-default-secret-key-2026')
+app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # Limit video uploads to 50MB
+
+# Ensure upload directory exists locally/on server
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# 1. Home / Landing Page
+# Temporary In-Memory Storage (Use Render PostgreSQL for production persistence)
+marketplace_listings = [
+    {
+        "title": "Babolat Pure Aero 2023",
+        "price": "$140",
+        "condition": "Like New (9/10)",
+        "specs": "Grip 2 (4 1/4), 300g",
+        "location": "Seoul (Olympic Park)"
+    },
+    {
+        "title": "Wilson Pro Staff 97 v13",
+        "price": "$110",
+        "condition": "Good (8/10)",
+        "specs": "Grip 3 (4 3/8), 315g",
+        "location": "Incheon"
+    }
+]
+
+# Track VIP Paywall status (Simulated state)
+user_vip_status = {"is_paid": False}
+
+
+# -------------------------------------------------------------------
+# ROUTES
+# -------------------------------------------------------------------
+
 @app.route('/')
 def home():
+    """Homepage / Landing Page"""
     return render_template('index.html')
 
-# 2. Page 1: String Tension Analysis & DIY Advice
+
 @app.route('/string-advisor', methods=['GET', 'POST'])
 def string_advisor():
+    """DIY Racquet String & Tension Calculator"""
     advice = None
     if request.method == 'POST':
-        player_style = request.form.get('style')
+        style = request.form.get('style')
         arm_pain = request.form.get('arm_pain')
-        
-        # Tension calculation logic
+        string_type = request.form.get('string_type')
+
+        # Baseline Tension Calculation Algorithm
+        base_tension = 53  # Default mid-range tension in lbs
+
+        if style == 'control':
+            base_tension += 3
+        elif style == 'power':
+            base_tension -= 2
+
         if arm_pain == 'yes':
-            advice = "Recommended Tension: 48-50 lbs (Multifilament string for arm comfort)."
-        elif player_style == 'power':
-            advice = "Recommended Tension: 53-56 lbs (Polyester string for maximum control)."
-        else:
-            advice = "Recommended Tension: 50-52 lbs (Synthetic Gut / Hybrid setup)."
-            
+            base_tension -= 4  # Lower tension relieves shock on joints
+
+        if string_type == 'poly':
+            base_tension -= 3  # Poly strings require lower tension
+        elif string_type == 'multi':
+            base_tension += 2
+
+        tension_kg = round(base_tension * 0.453592, 1)
+        
+        advice = f"{base_tension} lbs ({tension_kg} kg) using " \
+                 f"{'Soft Multifilament / Nylon' if arm_pain == 'yes' else string_type.title() + ' strings'}."
+
     return render_template('string_advisor.html', advice=advice)
 
-# 3. Page 2: Second-Hand Racquet Marketplace
-@app.route('/marketplace')
-def marketplace():
-    listings = [
-        {"id": 1, "title": "Babolat Pure Drive 2021", "price": "$120", "condition": "8/10", "location": "Seoul"},
-        {"id": 2, "title": "Wilson Pro Staff 97 v13", "price": "$150", "condition": "9/10", "location": "Busan"},
-    ]
-    return render_template('marketplace.html', listings=listings)
 
-# 4. Page 3: Technique Video Upload & Community Feedback
+@app.route('/marketplace', methods=['GET', 'POST'])
+def marketplace():
+    """Second-Hand Gear Marketplace"""
+    if request.method == 'POST':
+        title = request.form.get('title')
+        price = request.form.get('price')
+        condition = request.form.get('condition')
+        specs = request.form.get('specs')
+        location = request.form.get('location')
+
+        if title and price and location:
+            marketplace_listings.insert(0, {
+                "title": title,
+                "price": price if price.startswith('$') else f"${price}",
+                "condition": condition,
+                "specs": specs,
+                "location": location
+            })
+            flash("Racquet listing successfully posted!", "success")
+            return redirect(url_for('marketplace'))
+
+    return render_template('marketplace.html', listings=marketplace_listings)
+
+
 @app.route('/gesture-community', methods=['GET', 'POST'])
 def gesture_community():
+    """Swing Feedback & Video Community Uploads"""
     if request.method == 'POST':
-        if 'video' not in request.files:
-            flash('No file uploaded')
-            return redirect(request.url)
-        file = request.files['video']
-        if file.filename != '':
+        shot_type = request.form.get('shot_type')
+        caption = request.form.get('caption')
+        file = request.files.get('video')
+
+        if file and file.filename != '':
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            flash('Video uploaded! Community members can now critique your swing.')
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            flash(f"Video for {shot_type} uploaded successfully!", "success")
+        else:
+            flash("No video selected or invalid format.", "warning")
+
+        return redirect(url_for('gesture_community'))
+
     return render_template('gesture_community.html')
 
-# 5. Page 4: Court Dating ($1 Paywall Protected)
+
 @app.route('/dating')
 def dating():
-    # Check if user has completed the $1 payment session
-    is_paid = session.get('has_paid_dating', False)
-    return render_template('dating_paywall.html', is_paid=is_paid)
+    """Court Dating Landing / Gated Paywall View"""
+    return render_template('dating_paywall.html', is_paid=user_vip_status["is_paid"])
+
 
 @app.route('/process-payment', methods=['POST'])
 def process_payment():
-    # Simulate $1 Stripe / PayPal payment process
-    session['has_paid_dating'] = True
-    flash('Payment of $1.00 USD successful! Welcome to Court Dating.')
+    """Simulated $1.00 Verification Payment Handler"""
+    user_vip_status["is_paid"] = True
+    flash("Payment successful! Welcome to VIP Court Matching.", "success")
     return redirect(url_for('dating'))
 
+
+@app.route('/healthz')
+def healthz():
+    """Render Web Service Health Monitor Endpoint"""
+    return {"status": "healthy", "app": "tennisgirls"}, 200
+
+
+# -------------------------------------------------------------------
+# APPLICATION ENTRYPOINT
+# -------------------------------------------------------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Local development server execution
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
