@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div class="row align-items-center my-5 py-4 bg-light rounded-3 shadow-sm p-4">
+    <div class="col-lg-7">
+        <h1 class="display-4 fw-bold text-dark mb-3">Match on the Court, Not Over Coffee 🎾❤️</h1>
+        <p class="lead text-secondary mb-4">
+            Welcome to <strong>tennisgirls</strong> — the ultimate hub for tennis lovers. Find singles for court dates, 
+            get AI & community feedback on your swing, calculate your DIY string tension, and trade gear!
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="/dating" class="btn btn-warning btn-lg px-4 me-md-2 fw-bold">❤️ Join Court Dating ($1 VIP)</a>
+            <a href="/gesture-community" class="btn btn-outline-dark btn-lg px-4">📹 Upload Swing Clip</a>
+        </div>
+    </div>
+    <div class="col-lg-5 text-center mt-4 mt-lg-0">
+        <div class="p-4 bg-white rounded-circle shadow d-inline-block">
+            <span style="font-size: 5rem;">🎾</span>
+        </div>
+    </div>
+</div>
+
+<!-- Feature Cards Grid -->
+<div class="row g-4 py-3">
+    <!-- Feature 1: Court Dating -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-warning">
+            <div class="card-body text-center">
+                <div class="fs-1 mb-2">❤️</div>
+                <h5 class="card-title fw-bold">Court Dating</h5>
+                <p class="card-text text-muted small">
+                    Connect with single tennis players nearby for 1:1 court dates and 2:2 mixed doubles mixers.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-3 text-center">
+                <a href="/dating" class="btn btn-warning w-100 fw-bold">Find Matches ($1)</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature 2: Swing Community -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-1 mb-2">📹</div>
+                <h5 class="card-title fw-bold">Swing Feedback</h5>
+                <p class="card-text text-muted small">
+                    Upload video clips of your serve or forehand and get helpful posture & timing advice from others.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-3 text-center">
+                <a href="/gesture-community" class="btn btn-outline-primary w-100">Upload Video</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature 3: String Tension Advisor -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-1 mb-2">⚙️</div>
+                <h5 class="card-title fw-bold">String Tension DIY</h5>
+                <p class="card-text text-muted small">
+                    Find the optimal racquet string tension (lbs) and string type for your style and arm comfort.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-3 text-center">
+                <a href="/string-advisor" class="btn btn-outline-success w-100">Calculate Tension</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature 4: Marketplace -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body text-center">
+                <div class="fs-1 mb-2">🛍️</div>
+                <h5 class="card-title fw-bold">Racquet Market</h5>
+                <p class="card-text text-muted small">
+                    Buy and sell pre-owned tennis racquets and accessories with trusted local players.
+                </p>
+            </div>
+            <div class="card-footer bg-transparent border-0 pb-3 text-center">
+                <a href="/marketplace" class="btn btn-outline-dark w-100">Browse Listings</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
