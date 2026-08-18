@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row my-4">
+    <!-- Left Column: Upload Form -->
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white p-3">
+                <h4 class="mb-0">📹 Upload Your Swing Video</h4>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted small">
+                    Share a short clip of your forehand, backhand, or serve to get posture, timing, and footwork critiques from fellow players!
+                </p>
+                <form method="POST" action="/gesture-community" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Shot Type:</label>
+                        <select name="shot_type" class="form-select" required>
+                            <option value="Forehand">Forehand Topspin</option>
+                            <option value="Backhand">Two-Handed Backhand</option>
+                            <option value="Serve">First / Second Serve</option>
+                            <option value="Volley">Net Volley</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Video File (.mp4, .mov):</label>
+                        <input type="file" name="video" class="form-control" accept="video/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Question for the Community:</label>
+                        <textarea name="caption" class="form-control" rows="3" placeholder="e.g., Am I contacting the ball too late? How can I get more topspin?"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2">
+                        Post Video for Feedback
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Community Feed -->
+    <div class="col-md-7">
+        <h4 class="mb-3">💬 Recent Community Swing Reviews</h4>
+
+        <!-- Post Item 1 -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-info text-dark">Forehand Analysis</span>
+                    <small class="text-muted">Posted 2 hours ago by @TennisAlex</small>
+                </div>
+                <h5 class="fw-bold">Trying to fix my low-to-high swing path!</h5>
+                <p class="text-secondary small">"Feel like my wrist is too loose during contact. Any tips on unit turn and shoulder rotation?"</p>
+
+                <!-- Comments & Feedback Area -->
+                <div class="bg-light p-3 rounded mt-3">
+                    <h6 class="fw-bold text-primary mb-2">Community Feedback & Peer Advice:</h6>
+                    <div class="border-start border-3 border-primary ps-2 mb-2">
+                        <small class="fw-bold">@CoachMike:</small>
+                        <small class="text-dark">"Your unit turn is great! Try starting your racquet drop slightly earlier so you hit the ball in front of your body."</small>
+                    </div>
+                    <div class="border-start border-3 border-success ps-2">
+                        <small class="fw-bold">@SarahTennis:</small>
+                        <small class="text-dark">"Nice footwork! I play in Seoul as well, let's practice together sometime!"</small>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <input type="text" class="form-control form-control-sm" placeholder="Write a critique or message to make friends...">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
