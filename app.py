@@ -4,20 +4,25 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Security & Upload Configuration
+# Security & Upload Configurations
 app.secret_key = os.environ.get('SECRET_KEY', '1234567')
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB file upload limit
 
+# Ensure the upload directory exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# In-Memory Storage
-users_db = {}
+# -------------------------------------------------------------------
+# IN-MEMORY DATA STORES (Simulated Databases)
+# -------------------------------------------------------------------
+users_db = {}  # Format: { 'email': {'name': '...', 'email': '...', 'password': '...', 'ntrp': '...', 'photo': '...', 'phone': '...'} }
+
 marketplace_listings = [
     {
         "id": 1,
         "seller_email": "demo@tennisgirls.com",
         "seller_name": "Pro Staff Demo",
+        "seller_phone": "+82 10-1234-5678",
         "title": "Babolat Pure Aero 2023",
         "price": "$140",
         "condition": "Like New (9/10)",
@@ -27,11 +32,12 @@ marketplace_listings = [
     }
 ]
 
-item_id_counter = 2  # Counter for unique listing IDs
+item_id_counter = 2  # Unique listing ID tracker
+user_vip_status = {"is_paid": False}
 
 
 # -------------------------------------------------------------------
-# AUTHENTICATION & DASHBOARD
+# AUTHENTICATION & USER DASHBOARD ROUTES
 # -------------------------------------------------------------------
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -46,6 +52,7 @@ def register():
             flash("Email is already registered! Please log in.", "warning")
             return redirect(url_for('login'))
 
+        # Initialize profile record
         users_db[email] = {
             'name': name,
             'email': email,
@@ -56,7 +63,7 @@ def register():
         }
         
         session['user_email'] = email
-        flash(f"Account created! Welcome, {name} 🎾", "success")
+        flash(f"Account created successfully! Welcome to TennisGirls, {name} 🎾", "success")
         return redirect(url_for('dashboard'))
 
     return render_template('register.html')
@@ -90,7 +97,7 @@ def logout():
 def dashboard():
     email = session.get('user_email')
     if not email or email not in users_db:
-        flash("Please log in to access your dashboard.", "warning")
+        flash("Please log in to access your seller dashboard.", "warning")
         return redirect(url_for('login'))
 
     user = users_db[email]
@@ -156,11 +163,13 @@ def create_listing():
 
     return redirect(url_for('dashboard'))
 
+
 # -------------------------------------------------------------------
-# SWING FEEDBACK ROUTE
+# SWING FEEDBACK & STRING TENSOIN ADVISOR
 # -------------------------------------------------------------------
 
 @app.route('/swing-feedback', methods=['GET', 'POST'])
+@app.route('/string-advisor', methods=['GET', 'POST'])  # Aliased to prevent 404
 def swing_feedback():
     email = session.get('user_email')
     if not email:
@@ -172,8 +181,13 @@ def swing_feedback():
     if request.method == 'POST':
         racquet_brand = request.form.get('racquet_brand', 'Generic Racquet')
         shot_type = request.form.get('shot_type', 'Forehand')
-        
-        # Simulate motion tracking & biomechanics processing
+        file = request.files.get('swing_video')
+
+        if file and file.filename != '':
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        # Simulated AI video motion analysis & biomechanics output
         analysis_result = {
             "racket_speed_mph": 68,
             "kinetic_chain_score": 88,
@@ -183,16 +197,18 @@ def swing_feedback():
             "tension_range": "46 - 50 lbs",
             "string_type": "17G Co-Polyester / Synthetic Gut Hybrid",
             "diy_tips": [
-                "String Mains with Co-Poly at 48 lbs for control and durability.",
-                "String Crosses with Soft Synthetic Gut at 50 lbs (+2 lbs) to soften ball impact on off-center hits.",
+                "String Mains with Co-Poly at 48 lbs for spin control and durability.",
+                "String Crosses with Soft Synthetic Gut at 50 lbs (+2 lbs) to cushion off-center hits.",
                 "Tie off mains using Parnell knot at grommets 6T and 6B for minimal tension loss."
             ]
         }
         flash("Swing analysis complete!", "success")
 
     return render_template('swing_feedback.html', result=analysis_result)
+
+
 # -------------------------------------------------------------------
-# MARKETPLACE & INDIVIDUAL LISTING ROUTES
+# MARKETPLACE & PUBLIC ROUTES
 # -------------------------------------------------------------------
 
 @app.route('/')
@@ -201,15 +217,13 @@ def home():
 
 
 @app.route('/marketplace')
+@app.route('/gesture-community')  # Aliased to prevent 404
 def marketplace():
-    """Marketplace Grid displaying all posted racquets"""
     return render_template('marketplace.html', listings=marketplace_listings)
 
 
 @app.route('/listing/<int:item_id>')
 def view_listing(item_id):
-    """Dedicated Public Listing Page for a specific racquet"""
-    # Search for item by ID
     item = next((item for item in marketplace_listings if item['id'] == item_id), None)
     if not item:
         flash("Listing not found or has been removed.", "warning")
@@ -218,11 +232,26 @@ def view_listing(item_id):
     return render_template('listing_detail.html', item=item)
 
 
+@app.route('/dating')
+def dating():
+    return render_template('dating_paywall.html', is_paid=user_vip_status["is_paid"])
+
+
+@app.route('/process-payment', methods=['POST'])
+def process_payment():
+    user_vip_status["is_paid"] = True
+    flash("Payment successful! Access granted to VIP Court Matching.", "success")
+    return redirect(url_for('dating'))
+
+
 @app.route('/healthz')
 def healthz():
-    return {"status": "healthy"}, 200
+    return {"status": "healthy", "service": "tennisgirls"}, 200
 
 
+# -------------------------------------------------------------------
+# LAUNCH SERVER
+# -------------------------------------------------------------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
