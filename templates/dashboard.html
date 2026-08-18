@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row g-4">
+        
+        <!-- LEFT PANEL: User Profile & Photo Upload -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 text-center p-3">
+                <div class="card-body">
+                    <img src="{{ url_for('static', filename='uploads/' + user['photo']) }}" 
+                         onerror="this.src='https://via.placeholder.com/150?text=Tennis+Player'" 
+                         class="rounded-circle img-thumbnail mb-3" style="width: 140px; height: 140px; object-fit: cover;">
+                    
+                    <h4 class="fw-bold mb-0">{{ user['name'] }}</h4>
+                    <p class="text-muted small mb-2">{{ user['email'] }}</p>
+                    <span class="badge bg-primary mb-3">NTRP {{ user['ntrp'] }} Player</span>
+
+                    <hr>
+
+                    <!-- Edit Profile Form -->
+                    <form action="/update-profile" method="POST" enctype="multipart/form-data" class="text-start">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Upload Profile Photo</label>
+                            <input type="file" name="profile_photo" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Contact Phone</label>
+                            <input type="text" name="phone" class="form-control form-control-sm" value="{{ user['phone'] }}" placeholder="+82 10-0000-0000">
+                        </div>
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100 fw-bold">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Selling Hub -->
+        <div class="col-md-8">
+            
+            <!-- Create Racquet Listing Card -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white fw-bold">
+                    🎾 Sell a Second-Hand Racquet
+                </div>
+                <div class="card-body">
+                    <form action="/create-listing" method="POST" enctype="multipart/form-data">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold small">Racquet Title</label>
+                                <input type="text" name="title" class="form-control" placeholder="e.g. Wilson Blade 98 v8" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold small">Asking Price ($)</label>
+                                <input type="text" name="price" class="form-control" placeholder="120" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Condition</label>
+                                <select name="condition" class="form-select">
+                                    <option value="Brand New">Brand New</option>
+                                    <option value="Like New (9/10)" selected>Like New (9/10)</option>
+                                    <option value="Good (8/10)">Good (8/10)</option>
+                                    <option value="Used (6/10)">Used (6/10)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Location</label>
+                                <input type="text" name="location" class="form-control" placeholder="e.g. Seoul, Gangnam" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Grip & Specs</label>
+                                <input type="text" name="specs" class="form-control" placeholder="e.g. Grip 2 (4 1/4), 305g">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small">Racquet Photo</label>
+                                <input type="file" name="racquet_photo" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning fw-bold mt-3 w-100">Post Racquet for Sale</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active User Listings -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white fw-bold">
+                    📦 My Active Listings ({{ my_racquets|length }})
+                </div>
+                <div class="card-body">
+                    {% if my_racquets %}
+                        <div class="list-group">
+                            {% for item in my_racquets %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold mb-0">{{ item.title }}</h6>
+                                        <small class="text-muted">{{ item.condition }} • {{ item.location }}</small>
+                                    </div>
+                                    <span class="badge bg-success fs-6">{{ item.price }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center py-3 mb-0">You haven't listed any racquets yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
