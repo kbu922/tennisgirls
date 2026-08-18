@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Swing Feedback & String Tension Generator{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    
+    <div class="text-center mb-4">
+        <h2 class="fw-bold">AI Swing Biomechanics & Tension Advisor 🎾</h2>
+        <p class="text-muted">Upload your swing video to evaluate swing speed, kinetic transfer, and calculate your optimal string tension (lbs).</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        
+        <!-- UPLOAD SECTION -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-video text-primary me-2"></i> Upload Swing Video</h5>
+                
+                <form action="/swing-feedback" method="POST" enctype="multipart/form-data" id="swingForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Current Racquet</label>
+                        <input type="text" name="racquet_brand" class="form-control" placeholder="e.g. Wilson Blade 98 / Babolat Pure Drive" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small">Shot Type</label>
+                        <select name="shot_type" class="form-select">
+                            <option value="Forehand" selected>Topspin Forehand</option>
+                            <option value="Backhand">One-Handed / Two-Handed Backhand</option>
+                            <option value="Serve">First / Second Serve</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">Select Video File (.mp4, .mov)</label>
+                        <input type="file" name="swing_video" class="form-control" accept="video/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm" id="analyzeBtn">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Analyze Swing & Tension
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ANALYSIS RESULTS DISPLAY -->
+        <div class="col-lg-7">
+            {% if result %}
+                <div class="card border-0 shadow-sm p-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                        <h4 class="fw-bold text-success mb-0"><i class="fa-solid fa-circle-check me-2"></i> Swing Report Ready</h4>
+                        <span class="badge bg-primary fs-6">Score: {{ result.kinetic_chain_score }}/100</span>
+                    </div>
+
+                    <!-- METRICS GRID -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <small class="text-muted d-block">Racket Speed</small>
+                                <strong class="fs-4 text-primary">{{ result.racket_speed_mph }} mph</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <small class="text-muted d-block">Hip Rotation</small>
+                                <strong class="fs-6 text-dark">{{ result.hip_shoulder_separation }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-light rounded text-center">
+                                <small class="text-muted d-block">Sweetspot Rate</small>
+                                <strong class="fs-6 text-dark">{{ result.impact_consistency }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="p-3 bg-success bg-opacity-10 rounded text-center border border-success">
+                                <small class="text-success fw-bold d-block">Ideal Tension</small>
+                                <strong class="fs-4 text-success">{{ result.rec_tension_lbs }} lbs</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DIY STRINGING ADVICE -->
+                    <div class="card bg-light border-0 p-3">
+                        <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-screwdriver-wrench me-2"></i> Custom DIY Stringing Recipe</h5>
+                        <p class="small text-muted mb-2"><strong>Recommended Setup:</strong> {{ result.string_type }} @ {{ result.tension_range }}</p>
+                        
+                        <ul class="mb-0 ps-3 small">
+                            {% for tip in result.diy_tips %}
+                                <li class="mb-1">{{ tip }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% else %}
+                <div class="card border-0 shadow-sm p-5 text-center text-muted bg-light h-100 d-flex justify-content-center align-items-center">
+                    <i class="fa-solid fa-chart-line display-4 mb-3 text-secondary"></i>
+                    <h5 class="fw-bold">No Analysis Running</h5>
+                    <p class="small mb-0">Upload a video on the left to measure swing mechanics and get DIY string tension suggestions.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
