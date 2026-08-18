@@ -1,18 +1,19 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
 # Security & Environment Configurations
-app.secret_key = os.environ.get('SECRET_KEY', 'tennisgirls-default-secret-key-2026')
+app.secret_key = os.environ.get('SECRET_KEY', '1234567')
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # Limit video uploads to 50MB
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB upload limit
 
-# Ensure upload directory exists locally/on server
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# Temporary In-Memory Storage (Use Render PostgreSQL for production persistence)
+# In-Memory Databases (Simulated storage for demo)
+users_db = {}  # Format: { 'email': {'name': 'Name', 'password': 'password', 'ntrp': '3.5'} }
+
 marketplace_listings = [
     {
         "title": "Babolat Pure Aero 2023",
@@ -20,57 +21,100 @@ marketplace_listings = [
         "condition": "Like New (9/10)",
         "specs": "Grip 2 (4 1/4), 300g",
         "location": "Seoul (Olympic Park)"
-    },
-    {
-        "title": "Wilson Pro Staff 97 v13",
-        "price": "$110",
-        "condition": "Good (8/10)",
-        "specs": "Grip 3 (4 3/8), 315g",
-        "location": "Incheon"
     }
 ]
 
-# Track VIP Paywall status (Simulated state)
 user_vip_status = {"is_paid": False}
 
 
 # -------------------------------------------------------------------
-# ROUTES
+# AUTHENTICATION ROUTES (REGISTER / LOGIN / LOGOUT)
+# -------------------------------------------------------------------
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        ntrp = request.form.get('ntrp')
+
+        if email in users_db:
+            flash("Email is already registered! Please log in.", "warning")
+            return redirect(url_for('login'))
+
+        # Save user to dictionary
+        users_db[email] = {
+            'name': name,
+            'password': password,
+            'ntrp': ntrp
+        }
+        
+        # Log user in automatically after registration
+        session['user'] = {'name': name, 'email': email, 'ntrp': ntrp}
+        flash(f"Account created successfully! Welcome, {name} 🎾", "success")
+        return redirect(url_for('home'))
+
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        user = users_db.get(email)
+
+        if user and user['password'] == password:
+            session['user'] = {'name': user['name'], 'email': email, 'ntrp': user['ntrp']}
+            flash(f"Welcome back, {user['name']}!", "success")
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid email or password. Please try again.", "danger")
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    flash("You have been logged out.", "info")
+    return redirect(url_for('home'))
+
+
+# -------------------------------------------------------------------
+# APP ROUTES
 # -------------------------------------------------------------------
 
 @app.route('/')
 def home():
-    """Homepage / Landing Page"""
     return render_template('index.html')
 
 
 @app.route('/string-advisor', methods=['GET', 'POST'])
 def string_advisor():
-    """DIY Racquet String & Tension Calculator"""
     advice = None
     if request.method == 'POST':
         style = request.form.get('style')
         arm_pain = request.form.get('arm_pain')
         string_type = request.form.get('string_type')
 
-        # Baseline Tension Calculation Algorithm
-        base_tension = 53  # Default mid-range tension in lbs
-
+        base_tension = 53
         if style == 'control':
             base_tension += 3
         elif style == 'power':
             base_tension -= 2
 
         if arm_pain == 'yes':
-            base_tension -= 4  # Lower tension relieves shock on joints
+            base_tension -= 4
 
         if string_type == 'poly':
-            base_tension -= 3  # Poly strings require lower tension
+            base_tension -= 3
         elif string_type == 'multi':
             base_tension += 2
 
         tension_kg = round(base_tension * 0.453592, 1)
-        
         advice = f"{base_tension} lbs ({tension_kg} kg) using " \
                  f"{'Soft Multifilament / Nylon' if arm_pain == 'yes' else string_type.title() + ' strings'}."
 
@@ -79,7 +123,6 @@ def string_advisor():
 
 @app.route('/marketplace', methods=['GET', 'POST'])
 def marketplace():
-    """Second-Hand Gear Marketplace"""
     if request.method == 'POST':
         title = request.form.get('title')
         price = request.form.get('price')
@@ -103,7 +146,6 @@ def marketplace():
 
 @app.route('/gesture-community', methods=['GET', 'POST'])
 def gesture_community():
-    """Swing Feedback & Video Community Uploads"""
     if request.method == 'POST':
         shot_type = request.form.get('shot_type')
         caption = request.form.get('caption')
@@ -124,13 +166,11 @@ def gesture_community():
 
 @app.route('/dating')
 def dating():
-    """Court Dating Landing / Gated Paywall View"""
     return render_template('dating_paywall.html', is_paid=user_vip_status["is_paid"])
 
 
 @app.route('/process-payment', methods=['POST'])
 def process_payment():
-    """Simulated $1.00 Verification Payment Handler"""
     user_vip_status["is_paid"] = True
     flash("Payment successful! Welcome to VIP Court Matching.", "success")
     return redirect(url_for('dating'))
@@ -138,14 +178,9 @@ def process_payment():
 
 @app.route('/healthz')
 def healthz():
-    """Render Web Service Health Monitor Endpoint"""
     return {"status": "healthy", "app": "tennisgirls"}, 200
 
 
-# -------------------------------------------------------------------
-# APPLICATION ENTRYPOINT
-# -------------------------------------------------------------------
 if __name__ == '__main__':
-    # Local development server execution
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
