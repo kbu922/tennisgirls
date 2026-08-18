@@ -156,7 +156,41 @@ def create_listing():
 
     return redirect(url_for('dashboard'))
 
+# -------------------------------------------------------------------
+# SWING FEEDBACK ROUTE
+# -------------------------------------------------------------------
 
+@app.route('/swing-feedback', methods=['GET', 'POST'])
+def swing_feedback():
+    email = session.get('user_email')
+    if not email:
+        flash("Please log in to use AI Swing Feedback.", "warning")
+        return redirect(url_for('login'))
+
+    analysis_result = None
+
+    if request.method == 'POST':
+        racquet_brand = request.form.get('racquet_brand', 'Generic Racquet')
+        shot_type = request.form.get('shot_type', 'Forehand')
+        
+        # Simulate motion tracking & biomechanics processing
+        analysis_result = {
+            "racket_speed_mph": 68,
+            "kinetic_chain_score": 88,
+            "hip_shoulder_separation": "34° (Optimal)",
+            "impact_consistency": "Sweetspot 82%",
+            "rec_tension_lbs": 48,
+            "tension_range": "46 - 50 lbs",
+            "string_type": "17G Co-Polyester / Synthetic Gut Hybrid",
+            "diy_tips": [
+                "String Mains with Co-Poly at 48 lbs for control and durability.",
+                "String Crosses with Soft Synthetic Gut at 50 lbs (+2 lbs) to soften ball impact on off-center hits.",
+                "Tie off mains using Parnell knot at grommets 6T and 6B for minimal tension loss."
+            ]
+        }
+        flash("Swing analysis complete!", "success")
+
+    return render_template('swing_feedback.html', result=analysis_result)
 # -------------------------------------------------------------------
 # MARKETPLACE & INDIVIDUAL LISTING ROUTES
 # -------------------------------------------------------------------
