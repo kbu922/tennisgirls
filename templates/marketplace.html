@@ -1,72 +1,97 @@
 {% extends 'base.html' %}
 
+{% block title %}Tennis Gear Marketplace - TennisGirls{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center my-4">
-    <h2>🛍️ Second-Hand Racquet Marketplace</h2>
-    <button class="btn btn-dark" data-bs-toggle="collapse" data-bs-target="#sellForm">
-        + Sell Your Racquet
-    </button>
-</div>
-
-<!-- Collapsible Form to Post a Racquet -->
-<div class="collapse mb-4" id="sellForm">
-    <div class="card card-body bg-light">
-        <h5 class="fw-bold mb-3">List a Racquet for Sale</h5>
-        <form method="POST" action="/marketplace">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Racquet Title / Model</label>
-                    <input type="text" name="title" class="form-control" placeholder="e.g., Babolat Pure Aero 2023" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Price ($ USD)</label>
-                    <input type="text" name="price" class="form-control" placeholder="$120" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Condition</label>
-                    <select name="condition" class="form-select">
-                        <option value="Like New (9/10)">Like New (9/10)</option>
-                        <option value="Good (8/10)">Good (8/10)</option>
-                        <option value="Used (6/10)">Used (6/10)</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Grip Size & Weight</label>
-                    <input type="text" name="specs" class="form-control" placeholder="Grip 2 (4 1/4), 300g">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Location / Contact Info</label>
-                    <input type="text" name="location" class="form-control" placeholder="e.g., Seoul / Kakao ID" required>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-success mt-3">Post Listing</button>
-        </form>
-    </div>
-</div>
-
-<!-- Listings Cards Grid -->
-<div class="row g-4">
-    {% if listings %}
-        {% for item in listings %}
-        <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body">
-                    <span class="badge bg-secondary mb-2">{{ item.condition }}</span>
-                    <h5 class="card-title fw-bold">{{ item.title }}</h5>
-                    <p class="text-success fs-4 fw-bold mb-1">{{ item.price }}</p>
-                    <p class="card-text text-muted small mb-2">📍 Location: {{ item.location }}</p>
-                    <p class="card-text text-secondary small">Specs: {{ item.specs if item.specs else 'Standard' }}</p>
-                </div>
-                <div class="card-footer bg-white border-0 pb-3">
-                    <button class="btn btn-outline-dark w-100">Contact Seller</button>
-                </div>
-            </div>
+<div class="container my-4">
+    
+    <!-- PAGE HEADER & CALL TO ACTION -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 pb-3 border-bottom">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold mb-1">Second-Hand Gear Marketplace 🎾</h2>
+            <p class="text-muted mb-0">Buy, sell, and trade pre-loved racquets directly with local players.</p>
         </div>
-        {% endfor %}
+        <div>
+            {% if session.get('user_email') %}
+                <a href="/dashboard" class="btn btn-warning fw-bold px-4 shadow-sm">
+                    <i class="fa-solid fa-plus me-1"></i> Sell Your Racquet
+                </a>
+            {% else %}
+                <a href="/login" class="btn btn-primary fw-bold px-4 shadow-sm">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i> Log In to Sell
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MARKETPLACE LISTINGS GRID -->
+    {% if listings %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for item in listings %}
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm overflow-hidden">
+                        
+                        <!-- Racquet Image -->
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" 
+                                 onerror="this.src='https://via.placeholder.com/400x250?text=Tennis+Racquet'" 
+                                 class="card-img-top" 
+                                 alt="{{ item.title }}"
+                                 style="height: 220px; object-fit: cover;">
+                            
+                            <span class="position-absolute top-0 end-0 bg-success text-white px-3 py-1 m-2 rounded-pill fw-bold fs-6 shadow-sm">
+                                {{ item.price }}
+                            </span>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-bold text-dark mb-2">{{ item.title }}</h5>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-light text-dark border me-1">{{ item.condition }}</span>
+                                {% if item.specs %}
+                                    <span class="badge bg-secondary text-white">{{ item.specs }}</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="card-text text-muted small mb-3">
+                                <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ item.location }}
+                            </p>
+
+                            <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fa-solid fa-user me-1"></i> {{ item.seller_name if item.seller_name else 'Tennis Player' }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer Links -->
+                        <div class="card-footer bg-white border-top-0 p-3 pt-0">
+                            <a href="/listing/{{ item.id }}" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                View Details & Contact &rarr;
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
-        <div class="col-12 text-center py-5">
-            <p class="text-muted fs-5">No racquets listed yet. Be the first to post!</p>
+        <!-- EMPTY STATE -->
+        <div class="text-center py-5 bg-white rounded shadow-sm my-4">
+            <div class="mb-3">
+                <i class="fa-solid fa-table-tennis-paddle-ball text-muted display-3"></i>
+            </div>
+            <h4 class="fw-bold">No Racquets Listed Yet</h4>
+            <p class="text-muted mb-4">Be the first player in your community to post a second-hand racquet for sale!</p>
+            {% if session.get('user_email') %}
+                <a href="/dashboard" class="btn btn-warning fw-bold px-4">Post a Listing Now</a>
+            {% else %}
+                <a href="/register" class="btn btn-primary fw-bold px-4">Create Account & List Racquet</a>
+            {% endif %}
         </div>
     {% endif %}
+
 </div>
 {% endblock %}
