@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center my-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white p-3">
+                <h3 class="mb-0">⚙️ DIY Racquet String & Tension Advisor</h3>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted">
+                    Answer a few quick questions about your playing style and physical setup to get personalized string tension (lbs/kg) and string material recommendations.
+                </p>
+
+                <form method="POST" action="/string-advisor">
+                    <!-- Question 1: Playstyle -->
+                    <div class="mb-3">
+                        <label for="style" class="form-label fw-bold">1. What is your primary playing style?</label>
+                        <select name="style" id="style" class="form-select" required>
+                            <option value="control">Control & Precision (Flat hits, placement)</option>
+                            <option value="power" selected>Heavy Topspin & Power (Baseline banger)</option>
+                            <option value="comfort">Touch & Volleys (All-court player)</option>
+                        </select>
+                    </div>
+
+                    <!-- Question 2: Arm Comfort / Pain -->
+                    <div class="mb-3">
+                        <label for="arm_pain" class="form-label fw-bold">2. Do you experience arm pain or Tennis Elbow?</label>
+                        <select name="arm_pain" id="arm_pain" class="form-select" required>
+                            <option value="no">No, my arm feels great</option>
+                            <option value="yes">Yes, I get arm/wrist soreness</option>
+                        </select>
+                    </div>
+
+                    <!-- Question 3: String Type Preference -->
+                    <div class="mb-3">
+                        <label for="string_type" class="form-label fw-bold">3. Preferred String Setup:</label>
+                        <select name="string_type" id="string_type" class="form-select" required>
+                            <option value="poly">Polyester (Poly - Great control & topspin)</option>
+                            <option value="multi">Multifilament / Nylon (Soft & arm-friendly)</option>
+                            <option value="hybrid">Hybrid (Poly mains / Multi crosses)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2 mt-3">
+                        Calculate Tension & String Advice
+                    </button>
+                </form>
+
+                <!-- Recommendation Output Box -->
+                {% if advice %}
+                <div class="mt-4 p-4 rounded-3 border border-success bg-light">
+                    <h4 class="text-success fw-bold mb-3">🎯 Your Custom Setup Recommendation</h4>
+                    <p class="fs-5 mb-2"><strong>Recommended Tension:</strong> {{ advice }}</p>
+                    <hr>
+                    <h6 class="fw-bold">🛠️ DIY Stringing & Maintenance Tips:</h6>
+                    <ul class="mb-0 text-secondary">
+                        <li><strong>Mains vs. Crosses:</strong> If stringing polyester, consider dropping the cross string tension by 2 lbs for a larger sweet spot.</li>
+                        <li><strong>Restring Frequency:</strong> As a rule of thumb, restring your racquet as many times per year as you play per week (e.g., 3x/week = 3 restrings/year).</li>
+                        <li><strong>Arm Protection:</strong> Always string 3–5 lbs lower when switching to stiff polyester strings to protect your elbows.</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
